@@ -30,11 +30,6 @@ import {
 } from "./constants";
 
 
-const gameState = {
-  allCards: [],
-  isGameEnd: false
-};
-
 function shuffle(a: Array<any>) {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -49,8 +44,9 @@ function gameStart(game: any) {
   let cardPostions = [];
   const timer = controls.addTimer(game);
   const cardClicked = function (this: any) {
-    controls.processCardClick(allCards, this);
-    isGameEnded(game, timer, allCards);
+    controls.processCardClick(allCards, this).then(() => {
+      isGameEnded(game, timer, allCards);
+    });
   };
 
   for (let y = 1; y <= CARD_ROWS; y++) {
@@ -81,20 +77,16 @@ function gameStart(game: any) {
 
 function isGameEnded(game: any, timer: any, allCards: Array<any>) {
   let isAllMatched = true;
-  allCards.forEach((card) => {
-    isAllMatched = isAllMatched && !card.active;
-  });
-
-  if (isAllMatched) {
-    gameEnd(game, timer);
-  }
+  allCards.forEach((card) => { isAllMatched = isAllMatched && !card.active; });
+  if (isAllMatched) gameEnd(game, timer);
 }
 
 function gameEnd(game: any, timer: any) {
   clearInterval(timer.getData("interval"));
   const time = timer.getData("formatedTime");
-
-  const completeText = game.add.text(GAME_BOARD_WIDTH / 2 - 150, 250, `Memory Game Completed in ${time}!!`, { fill: '#0f0' });
+  const completeText = game.add
+    .text(GAME_BOARD_WIDTH / 2, 250, `Memory Game Completed in ${time}!!`, { fill: '#0f0' })
+    .setOrigin(.5, .5);
   const restartButton = controls.addRestartButton(game);
   restartButton.on('pointerdown', () => {
     completeText.destroy();

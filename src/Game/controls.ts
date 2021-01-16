@@ -6,13 +6,15 @@ import {
 
 export function addStartButton(game: any) {
   return game.add
-    .text(GAME_BOARD_WIDTH / 2 - 50, 250, 'Start!', { fontSize: '32px', fill: '#0f0' })
+    .text(GAME_BOARD_WIDTH / 2, 250, 'Start!', { fontSize: '32px', fill: '#0f0' })
+    .setOrigin(.5, .5)
     .setInteractive();
 }
 
 export function addRestartButton(game: any) {
   return game.add
-    .text(GAME_BOARD_WIDTH / 2 - 100, 350, 'Click to Play Again!', { fontSize: '32px', fill: '#0f0' })
+    .text(GAME_BOARD_WIDTH / 2, 350, 'Click to Play Again!', { fontSize: '32px', fill: '#0f0' })
+    .setOrigin(.5, .5)
     .setInteractive();
 }
 
@@ -57,6 +59,7 @@ export function createCard(game: any, position: Position, cardName: string, card
     .image(position.x, position.y, "cardDown")
     .setInteractive();
 
+  card.setOrigin(.5, .5);
   card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
   card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
 
@@ -67,28 +70,45 @@ export function createCard(game: any, position: Position, cardName: string, card
   return card;
 }
 
-export function processCardClick(allCards: Array<any>, card: any) {
-  const shownCard = allCards.find((c) => c.getData("isShowing"));
-  const isCardMatch = shownCard && shownCard.getData("cardName") === card.getData("cardName");
-  const isNotSameCard = shownCard && shownCard.getData("cardNumber") !== card.getData("cardNumber")
+export function processCardClick(allCards: Array<any>, card: any): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const cardShownCount = allCards.reduce((count, c) => {
+      return c.getData("isShowing") ? ++count : count;
+    }, 0);
+    const shownCard = allCards.find((c) => c.getData("isShowing"));
+    const isCardMatch = shownCard && shownCard.getData("cardName") === card.getData("cardName");
+    const isNotSameCard = shownCard && shownCard.getData("cardNumber") !== card.getData("cardNumber")
 
-  card.setTexture(card.getData("cardName"));
-  card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
-  card.setData("isShowing", true);
+    // Wait for shown cards to finish
+    if (cardShownCount >= 2) {
+      resolve();
+      return;
+    }
 
-  // Cards matched
-  if (shownCard && isCardMatch && isNotSameCard) {
-    shownCard.destroy();
-    card.destroy();
-
-  // Cards not matched - reset
-  } else if (shownCard && isNotSameCard) {
-    shownCard.setData("isShowing", false);
-    shownCard.setTexture("cardDown");
-    shownCard.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
-
-    card.setData("isShowing", false);
-    card.setTexture("cardDown");
+    card.setTexture(card.getData("cardName"));
     card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
-  }
+    card.setData("isShowing", true);
+
+    // Cards matched
+    if (shownCard && isCardMatch && isNotSameCard) {
+      setTimeout(() => {
+        shownCard.destroy();
+        card.destroy();
+        resolve();
+      }, 500);
+
+      // Cards not matched - reset
+    } else if (shownCard && isNotSameCard) {
+      setTimeout(() => {
+        shownCard.setData("isShowing", false);
+        shownCard.setTexture("cardDown");
+        shownCard.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
+
+        card.setData("isShowing", false);
+        card.setTexture("cardDown");
+        card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
+        resolve();
+      }, 1500);
+    }
+  });
 }
