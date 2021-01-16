@@ -94,10 +94,12 @@ function gameEnd(game: any, timer: any) {
   clearInterval(timer.getData("interval"));
   const time = timer.getData("formatedTime");
 
-  game.add.text(GAME_BOARD_WIDTH / 2, 250, `Memory Game Completed in ${time}!!`, { fill: '#0f0' });
+  const completeText = game.add.text(GAME_BOARD_WIDTH / 2 - 150, 250, `Memory Game Completed in ${time}!!`, { fill: '#0f0' });
   const restartButton = controls.addRestartButton(game);
   restartButton.on('pointerdown', () => {
+    completeText.destroy();
     restartButton.destroy();
+    timer.destroy();
     gameStart(game);
   });
 }
