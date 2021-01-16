@@ -1,7 +1,15 @@
 .game-board {
-  background-color: #a0a0a0;
-  height: 500px;
   margin: 0 auto;
   margin-top: 2em;
-  width: 700px;
+
+  > canvas {
+    cursor: pointer;
+  }
+
+  .playing-card {
+    background: white;
+    border-radius: 10px;
+    height: 200px;
+    width: 150px;
+  }
 }

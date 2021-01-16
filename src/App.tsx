@@ -13,9 +13,7 @@ function App() {
         <h1>Memory Game</h1>
       </header>
       <main className="app-main">
-        <Container>
-          <Game />
-        </Container>
+        <Game />
       </main>
       <footer>
         
