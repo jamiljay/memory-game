@@ -1,0 +1,18 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: auto;
+  width: 100vw;
+
+  .app-header {
+    text-align: center;
+  }
+
+  .app-main {
+    display: flex;
+    height: 100%;
+    overflow: auto;
+    width: 100%;
+  }
+}

@@ -1,0 +1,21 @@
+@import '~bootstrap/scss/bootstrap';
+@import './overrides/bootstrap';
+
+html,
+body {
+  height: 100vh;
+  overflow: hidden;
+  width: 100vw;
+}
+
+body {
+  background-color: #333;
+  color: #fff;
+  font-family: sans-serif;
+  margin: 0;
+  overflow: hidden;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
