@@ -10,7 +10,7 @@ interface Position {
 
 function getShownCardCount(deck: Array<any>) {
   return deck.reduce((count: number, c: any) => {
-    return c.isShowing ? ++count : count;
+    return c.isShowing && !c.isMatched ? ++count : count;
   }, 0);
 }
 
@@ -21,6 +21,7 @@ export default class Card {
   isShowing: boolean
   isMatched: boolean
   card: any
+  cardface: any
   constructor(game: any, position: Position, cardName: string, cardNumber: number) {
     this.game = game;
     this.cardName = cardName;
@@ -29,9 +30,14 @@ export default class Card {
     this.isMatched = false;
     this.card = game.add
       .image(position.x, position.y, "cardDown")
+      .setDisplaySize(CARD_WIDTH, CARD_HEIGHT)
       .setInteractive({ cursor: 'pointer' });
 
-    this.card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
+    this.cardface = game.add
+      .image(position.x, position.y, cardName)
+      .setDisplaySize(CARD_WIDTH, CARD_HEIGHT)
+      .setInteractive({ cursor: 'pointer' })
+      .setVisible(false);
 
     this.card.on('pointerdown', () => {
       const { deck } = game.objects;
@@ -42,31 +48,29 @@ export default class Card {
   }
 
   show = () => {
-    const { card } = this;
-    card.setTexture(this.cardName);
-    card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
     this.isShowing = true;
+    this.card.setVisible(false);
+    this.cardface.setVisible(true);
     // TODO: add flip animation
   };
 
   reset = () => {
-    const { card, isMatched } = this;
-    if (isMatched) return;
+    if (this.isMatched) return;
     // TODO: add flip animation
     setTimeout(() => {
       this.isShowing = false;
-      card.setTexture("cardDown");
-      card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
+      this.card.setVisible(true);
+      this.cardface.setVisible(false);
     }, 1500);
   };
 
   matched = () => {
-    const { game, card } = this;
+    const { game, card, cardface } = this;
     this.isMatched = true;
     this.isShowing = false;
 
     game.tweens.add({
-      targets: card,
+      targets: cardface,
       alpha: 0,
       duration: 2000,
       ease: 'Power2'
@@ -74,6 +78,7 @@ export default class Card {
 
     setTimeout(() => {
       card.destroy();
+      cardface.destroy();
     }, 2500);
   };
 }
