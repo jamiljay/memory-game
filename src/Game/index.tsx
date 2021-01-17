@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Phaser from "phaser";
 
 import * as controls from "./controls";
@@ -85,11 +85,15 @@ const config = {
 };
 
 function Game() {
+  const [game, setGame]: any = useState(null);
   const gameBoard: any = useRef(null);
-  useEffect(() => {
-    // recreates game
+  const refreshGame = () => {
     if (gameBoard) gameBoard.current.innerHTML = "";
-    new Phaser.Game(config);
+    setGame(new Phaser.Game(config));
+  };
+
+  useEffect(() => {
+    if (!game) refreshGame();
   });
 
   return (
