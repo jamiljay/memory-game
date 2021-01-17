@@ -9,6 +9,14 @@ Game Rules
 - When the user clicks the next card, its value is revealed and then compared against the other face up card. If they are equal, both cards disappear. If they are different, they flip back down.
 - The game is continued until there are no cards left.
 
+## Game Screenshots
+
+![alt text](./public/screenshots/start.png "Start of Memory Game")
+
+![alt text](./public/screenshots/mid-game.png "Memory Game in Play")
+
+![alt text](./public/screenshots/game-over.png "Memory Game Completed")
+
 ## Available Scripts
 
 ### `npm start`
