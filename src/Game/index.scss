@@ -3,7 +3,8 @@
   margin-top: 2em;
 
   > canvas {
-    cursor: pointer;
+    border: outset 5px #676767;
+    border-radius: 5px;
   }
 
   .playing-card {

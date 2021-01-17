@@ -27,9 +27,10 @@ import {
   CARD_WIDTH,
   CARD_HEIGHT,
   CARD_SPACING,
+  TEXT_STYLE,
 } from "./constants";
 
-
+// sourece: https://stackoverflow.com/a/6274381
 function shuffle(a: Array<any>) {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -85,7 +86,7 @@ function gameEnd(game: any, timer: any) {
   clearInterval(timer.getData("interval"));
   const time = timer.getData("formatedTime");
   const completeText = game.add
-    .text(GAME_BOARD_WIDTH / 2, 250, `Memory Game Completed in ${time}!!`, { fill: '#0f0' })
+    .text(GAME_BOARD_WIDTH / 2, 250, `Memory Game Completed in ${time}!!`, { ...TEXT_STYLE, fontSize: "24px"})
     .setOrigin(.5, .5);
   const restartButton = controls.addRestartButton(game);
   restartButton.on('pointerdown', () => {
