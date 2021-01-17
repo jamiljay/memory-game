@@ -18,14 +18,14 @@ function getShownCardCount(deck: Array<any>) {
 }
 
 export default class Card {
-  game: any
-  cardName: string
-  cardNumber: number
+  readonly game: any
+  readonly cardName: string
+  readonly cardNumber: number
+  readonly card: any
+  readonly cardface: any
   isShowing: boolean
   isFaceDown: boolean
   isMatched: boolean
-  card: any
-  cardface: any
   constructor(game: any, position: Position, cardName: string, cardNumber: number) {
     this.game = game;
     this.cardName = cardName;

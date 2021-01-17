@@ -15,7 +15,7 @@ function formatTime(time: number): string {
 }
 
 export default class Timer {
-  timer: any;
+  readonly timer: any;
   constructor(game: any) {
     this.timer = game.add.text(0, 0, `Time: 0s`, TEXT_STYLE);
     this.timer.setData("time", 0);
