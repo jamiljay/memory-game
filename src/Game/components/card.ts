@@ -3,6 +3,9 @@ import {
   CARD_HEIGHT
 } from "../constants";
 
+const FLIP_TIME = 1000;
+const FADE_TIME = 2500;
+
 interface Position {
   x: number,
   y: number
@@ -10,7 +13,7 @@ interface Position {
 
 function getShownCardCount(deck: Array<any>) {
   return deck.reduce((count: number, c: any) => {
-    return c.isShowing && !c.isMatched ? ++count : count;
+    return !c.isFaceDown ? ++count : count;
   }, 0);
 }
 
@@ -19,6 +22,7 @@ export default class Card {
   cardName: string
   cardNumber: number
   isShowing: boolean
+  isFaceDown: boolean
   isMatched: boolean
   card: any
   cardface: any
@@ -27,6 +31,7 @@ export default class Card {
     this.cardName = cardName;
     this.cardNumber = cardNumber;
     this.isShowing = false;
+    this.isFaceDown = true;
     this.isMatched = false;
     this.card = game.add
       .image(position.x, position.y, "cardDown")
@@ -49,36 +54,39 @@ export default class Card {
 
   show = () => {
     this.isShowing = true;
+    this.isFaceDown = false;
     this.card.setVisible(false);
     this.cardface.setVisible(true);
     // TODO: add flip animation
   };
 
   reset = () => {
-    if (this.isMatched) return;
+    this.isShowing = false;
+
     // TODO: add flip animation
     setTimeout(() => {
-      this.isShowing = false;
+      this.isFaceDown = true;
       this.card.setVisible(true);
       this.cardface.setVisible(false);
-    }, 1500);
+    }, FLIP_TIME);
   };
 
   matched = () => {
     const { game, card, cardface } = this;
     this.isMatched = true;
     this.isShowing = false;
+    this.isFaceDown = true;
 
     game.tweens.add({
       targets: cardface,
       alpha: 0,
-      duration: 2000,
+      duration: FADE_TIME - 500,
       ease: 'Power2'
     });
 
     setTimeout(() => {
       card.destroy();
       cardface.destroy();
-    }, 2500);
+    }, FADE_TIME);
   };
 }
