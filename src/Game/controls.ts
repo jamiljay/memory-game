@@ -2,24 +2,31 @@ import {
   GAME_BOARD_WIDTH,
   CARD_WIDTH,
   CARD_HEIGHT,
+  CARD_ROWS,
+  CARD_COLUMNS,
+  CARD_SPACING,
   TEXT_STYLE,
   BUTTON_STYLE
 } from "./constants";
 
 export function addStartButton(game: any) {
-  return game.add
+  const startButton = game.add
     .text(GAME_BOARD_WIDTH / 2, 350, 'Start Game!', BUTTON_STYLE)
     .setOrigin(.5, .5)
     .setShadow( 1, 1, '#4168fc')
     .setInteractive({ cursor: 'pointer' });
+
+  game.objects.startButton = startButton;
 }
 
-export function addRestartButton(game: any) {
-  return game.add
+function addRestartButton(game: any) {
+  const restartButton = game.add
     .text(GAME_BOARD_WIDTH / 2, 350, 'Click to Play Again!', BUTTON_STYLE)
     .setOrigin(.5, .5)
     .setShadow( 1, 1, '#4168fc')
     .setInteractive({ cursor: 'pointer' });
+
+  game.objects.restartButton = restartButton;
 }
 
 function formatTime(time: number): string {
@@ -34,7 +41,7 @@ function formatTime(time: number): string {
   return `${seconds}s`;
 }
 
-export function addTimer(game: any) {
+function addTimer(game: any) {
   const scoreText: any = game.add.text(0, 0, `Time: 0s`, TEXT_STYLE);
   scoreText.setData("time", 0);
   scoreText.setData("formatedTime", '0s');
@@ -50,7 +57,7 @@ export function addTimer(game: any) {
 
   scoreText.setData("interval", interval);
 
-  return scoreText;
+  game.objects.scoreText = scoreText;
 }
 
 interface Position {
@@ -58,7 +65,13 @@ interface Position {
   y: number
 };
 
-export function createCard(game: any, position: Position, cardName: string, cardNumber: number): any {
+function getShownCardCount(deck: Array<any>) {
+  return deck.reduce((count: number, c: any) => {
+    return c.getData("isShowing") ? ++count : count;
+  }, 0);
+}
+
+function createCard(game: any, position: Position, cardName: string, cardNumber: number): any {
   const card = game.add
     .image(position.x, position.y, "cardDown")
     .setInteractive({ cursor: 'pointer' });
@@ -69,48 +82,124 @@ export function createCard(game: any, position: Position, cardName: string, card
   card.setData("cardName", cardName);
   card.setData("isShowing", false);
 
-  return card;
-}
-
-export function processCardClick(allCards: Array<any>, card: any): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const cardShownCount = allCards.reduce((count, c) => {
-      return c.getData("isShowing") ? ++count : count;
-    }, 0);
-    const shownCard = allCards.find((c) => c.getData("isShowing"));
-    const isCardMatch = shownCard && shownCard.getData("cardName") === card.getData("cardName");
-    const isNotSameCard = shownCard && shownCard.getData("cardNumber") !== card.getData("cardNumber")
-
-    // Wait for shown cards to finish
-    if (cardShownCount >= 2) {
-      resolve();
-      return;
-    }
-
+  card.show = function () {
     card.setTexture(card.getData("cardName"));
     card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
     card.setData("isShowing", true);
+    // TODO: add flip animation
+  };
 
-    // Cards matched
-    if (shownCard && isCardMatch && isNotSameCard) {
-      setTimeout(() => {
-        shownCard.destroy();
-        card.destroy();
-        resolve();
-      }, 500);
+  card.reset = function () {
+    // TODO: add flip animation
+    setTimeout(() => {
+      card.setData("isShowing", false);
+      card.setTexture("cardDown");
+      card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
+    }, 1500);
+  };
 
-      // Cards not matched - reset
-    } else if (shownCard && isNotSameCard) {
-      setTimeout(() => {
-        shownCard.setData("isShowing", false);
-        shownCard.setTexture("cardDown");
-        shownCard.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
+  card.matched = function () {
+    card.setData("isShowing", false);
+    // TODO: add match animation
+    setTimeout(() => {
+      card.destroy();
+    }, 1000);
+  };
 
-        card.setData("isShowing", false);
-        card.setTexture("cardDown");
-        card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
-        resolve();
-      }, 1500);
-    }
+  card.on('pointerdown', () => {
+    const { deck } = game.objects;
+    const cardShownCount = getShownCardCount(deck);
+    if (cardShownCount >= 2) return;
+    card.show();
   });
+
+  return card;
+}
+
+export function checkforMatch(game: any) {
+  const { deck } = game.objects;
+  const shownCards = deck.filter((c:any) => c.getData("isShowing"));
+  const is2CardsShown = shownCards.length >= 2;
+  const isCardMatch = is2CardsShown && shownCards[0].getData("cardName") === shownCards[1].getData("cardName");
+
+  if (!is2CardsShown) return;
+
+  // Cards matched
+  if (isCardMatch) {
+    shownCards[0].matched();
+    shownCards[1].matched();
+
+  // Cards not matched - reset
+  } else {
+    shownCards[0].reset();
+    shownCards[1].reset();
+  }
+}
+
+export function isAllCardsMatched(game: any) {
+  const { deck } = game.objects;
+  let isAllMatched = true;
+  deck.forEach((card: any) => { isAllMatched = isAllMatched && !card.active; });
+  return isAllMatched;
+}
+
+
+// sourece: https://stackoverflow.com/a/6274381
+function shuffle(a: Array<any>) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export function gameStart(game: any) {
+  let count = 0;
+  let cardPostions = [];
+  game.objects.deck = [];
+
+  for (let y = 1; y <= CARD_ROWS; y++) {
+    for (let x = 1; x <= CARD_COLUMNS; x++) {
+      let position = {
+        number: ++count,
+        x: x * (CARD_WIDTH + CARD_SPACING),
+        y: y * (CARD_HEIGHT + CARD_SPACING)
+      };
+      cardPostions.push(position);
+    }
+  }
+
+  cardPostions = shuffle(cardPostions);
+
+  for (let i = 0; i < 12; i++) {
+    const cardNumber = i + 1;
+    const card1 = createCard(game, cardPostions[i], `card${cardNumber}`, i);
+    const card2 = createCard(game, cardPostions[i + 12], `card${cardNumber}`, i + 12);
+
+    game.objects.deck.push(card1);
+    game.objects.deck.push(card2);
+  }
+
+  addTimer(game);
+  game.state.isGameRunning = true;
+}
+
+export function gameEnd(game: any) {
+  const { timer } = game.objects;
+  clearInterval(timer.getData("interval"));
+  const time = timer.getData("formatedTime");
+
+  const completeText = game.add
+    .text(GAME_BOARD_WIDTH / 2, 150, `Memory Game Completed in ${time}!!`, { ...TEXT_STYLE, fontSize: "24px" })
+    .setOrigin(.5, .5);
+
+  const restartButton: any = addRestartButton(game);
+  restartButton.on('pointerdown', () => {
+    completeText.destroy();
+    restartButton.destroy();
+    timer.destroy();
+    gameStart(game);
+  });
+
+  game.state.isGameRunning = false;
 }
