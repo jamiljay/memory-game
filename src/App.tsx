@@ -1,8 +1,6 @@
 import React from 'react';
-import { Container } from 'react-bootstrap';
 
 import Game from './Game';
-// import Rules from './Rules';
 
 import './App.scss';
 
