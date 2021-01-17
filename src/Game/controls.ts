@@ -8,9 +8,8 @@ import {
 
 export function addStartButton(game: any) {
   return game.add
-    .text(GAME_BOARD_WIDTH / 2, 250, 'Start Game!', BUTTON_STYLE)
+    .text(GAME_BOARD_WIDTH / 2, 350, 'Start Game!', BUTTON_STYLE)
     .setOrigin(.5, .5)
-    .setPadding(15, 10, 15, 10)
     .setShadow( 1, 1, '#4168fc')
     .setInteractive({ cursor: 'pointer' });
 }
@@ -19,7 +18,6 @@ export function addRestartButton(game: any) {
   return game.add
     .text(GAME_BOARD_WIDTH / 2, 350, 'Click to Play Again!', BUTTON_STYLE)
     .setOrigin(.5, .5)
-    .setPadding(15, 10, 15, 10)
     .setShadow( 1, 1, '#4168fc')
     .setInteractive({ cursor: 'pointer' });
 }
@@ -37,7 +35,7 @@ function formatTime(time: number): string {
 }
 
 export function addTimer(game: any) {
-  const scoreText: any = game.add.text(20, 20, `Time: 0s`, TEXT_STYLE);
+  const scoreText: any = game.add.text(0, 0, `Time: 0s`, TEXT_STYLE);
   scoreText.setData("time", 0);
   scoreText.setData("formatedTime", '0s');
 

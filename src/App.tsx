@@ -8,7 +8,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Memory Game</h1>
+        <h1>Frozen Memory Game</h1>
       </header>
       <main className="app-main">
         <Game />

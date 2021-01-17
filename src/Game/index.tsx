@@ -86,7 +86,7 @@ function gameEnd(game: any, timer: any) {
   clearInterval(timer.getData("interval"));
   const time = timer.getData("formatedTime");
   const completeText = game.add
-    .text(GAME_BOARD_WIDTH / 2, 250, `Memory Game Completed in ${time}!!`, { ...TEXT_STYLE, fontSize: "24px"})
+    .text(GAME_BOARD_WIDTH / 2, 150, `Memory Game Completed in ${time}!!`, { ...TEXT_STYLE, fontSize: "24px"})
     .setOrigin(.5, .5);
   const restartButton = controls.addRestartButton(game);
   restartButton.on('pointerdown', () => {
@@ -99,6 +99,7 @@ function gameEnd(game: any, timer: any) {
 
 function preload(this: any) {
   // TODO: load all cards 
+  this.load.image("background", backgroundImg);
   this.load.image("cardDown", cardDownImg);
   this.load.image("card1", card1Img);
   this.load.image("card2", card2Img);
@@ -115,9 +116,15 @@ function preload(this: any) {
 }
 
 function create(this: any) {
-  const startButton = controls.addStartButton(this);
-  startButton.on('pointerdown', () => {
-    startButton.destroy();
+  this.objects = {};
+  this.objects.background = this.add
+    .image(0, 0, "background")
+    .setOrigin(0, 0)
+    .setDisplaySize(GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT);
+  
+  this.objects.startButton = controls.addStartButton(this);
+  this.objects.startButton.on('pointerdown', () => {
+    this.objects.startButton.destroy();
     gameStart(this);
   });
 }
