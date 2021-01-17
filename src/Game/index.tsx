@@ -25,7 +25,6 @@ import {
   GAME_BOARD_HEIGHT
 } from "./constants";
 
-
 function preload(this: any) {
   // TODO: load all cards 
   this.load.image("background", backgroundImg);
@@ -45,18 +44,19 @@ function preload(this: any) {
 }
 
 function create(this: any) {
+  this.objects = {};
   this.state = {
     isGameRunning: false
   };
-  this.objects = {};
-  this.objects.background = this.add
+
+  this.add
     .image(0, 0, "background")
     .setOrigin(0, 0)
     .setDisplaySize(GAME_BOARD_WIDTH, GAME_BOARD_HEIGHT);
   
-  controls.addStartButton(this);
-  this.objects.startButton.on('pointerdown', () => {
-    this.objects.startButton.destroy();
+  const startButton = controls.createStartButton(this);
+  startButton.on('pointerdown', () => {
+    startButton.destroy();
     controls.gameStart(this);
   });
 }

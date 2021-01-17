@@ -9,118 +9,24 @@ import {
   BUTTON_STYLE
 } from "./constants";
 
-export function addStartButton(game: any) {
+import gameTimer from "./components/timer";
+import Card from "./components/card";
+
+export function createStartButton(game: any) {
   const startButton = game.add
     .text(GAME_BOARD_WIDTH / 2, 350, 'Start Game!', BUTTON_STYLE)
     .setOrigin(.5, .5)
     .setShadow( 1, 1, '#4168fc')
     .setInteractive({ cursor: 'pointer' });
 
-  game.objects.startButton = startButton;
-}
-
-function addRestartButton(game: any) {
-  const restartButton = game.add
-    .text(GAME_BOARD_WIDTH / 2, 350, 'Click to Play Again!', BUTTON_STYLE)
-    .setOrigin(.5, .5)
-    .setShadow( 1, 1, '#4168fc')
-    .setInteractive({ cursor: 'pointer' });
-
-  game.objects.restartButton = restartButton;
-}
-
-function formatTime(time: number): string {
-  let seconds = time;
-  const hours = Math.floor(seconds / 3600);
-  seconds = seconds - (hours * 3600);
-  const minutes = Math.floor(seconds / 60);
-  seconds = seconds - (minutes * 60);
-
-  if (hours) return 'Maybe you need help :(';
-  if (minutes) return `${minutes}m:${seconds}s`;
-  return `${seconds}s`;
-}
-
-function addTimer(game: any) {
-  const scoreText: any = game.add.text(0, 0, `Time: 0s`, TEXT_STYLE);
-  scoreText.setData("time", 0);
-  scoreText.setData("formatedTime", '0s');
-
-  const interval = setInterval(() => {
-    let time: number = scoreText.getData("time");
-    const formatedTime = formatTime(++time);
-    scoreText.setText(`Time: ${formatedTime}`);
-
-    scoreText.setData("time", time);
-    scoreText.setData("formatedTime", formatedTime);
-  }, 1000);
-
-  scoreText.setData("interval", interval);
-
-  game.objects.scoreText = scoreText;
-}
-
-interface Position {
-  x: number,
-  y: number
-};
-
-function getShownCardCount(deck: Array<any>) {
-  return deck.reduce((count: number, c: any) => {
-    return c.getData("isShowing") ? ++count : count;
-  }, 0);
-}
-
-function createCard(game: any, position: Position, cardName: string, cardNumber: number): any {
-  const card = game.add
-    .image(position.x, position.y, "cardDown")
-    .setInteractive({ cursor: 'pointer' });
-
-  card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
-
-  card.setData("cardNumber", cardNumber);
-  card.setData("cardName", cardName);
-  card.setData("isShowing", false);
-
-  card.show = function () {
-    card.setTexture(card.getData("cardName"));
-    card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
-    card.setData("isShowing", true);
-    // TODO: add flip animation
-  };
-
-  card.reset = function () {
-    // TODO: add flip animation
-    setTimeout(() => {
-      card.setData("isShowing", false);
-      card.setTexture("cardDown");
-      card.setDisplaySize(CARD_WIDTH, CARD_HEIGHT);
-    }, 1500);
-  };
-
-  card.matched = function () {
-    card.setData("isShowing", false);
-    // TODO: add match animation
-    setTimeout(() => {
-      card.destroy();
-    }, 1000);
-  };
-
-  card.on('pointerdown', () => {
-    const { deck } = game.objects;
-    const cardShownCount = getShownCardCount(deck);
-    if (cardShownCount >= 2) return;
-    card.show();
-  });
-
-  return card;
+  return startButton;
 }
 
 export function checkforMatch(game: any) {
   const { deck } = game.objects;
-  const shownCards = deck.filter((c:any) => c.getData("isShowing"));
+  const shownCards = deck.filter((c: any) => c.isShowing && !c.isMatched);
   const is2CardsShown = shownCards.length >= 2;
-  const isCardMatch = is2CardsShown && shownCards[0].getData("cardName") === shownCards[1].getData("cardName");
+  const isCardMatch = is2CardsShown && shownCards[0].cardName === shownCards[1].cardName;
 
   if (!is2CardsShown) return;
 
@@ -139,10 +45,9 @@ export function checkforMatch(game: any) {
 export function isAllCardsMatched(game: any) {
   const { deck } = game.objects;
   let isAllMatched = true;
-  deck.forEach((card: any) => { isAllMatched = isAllMatched && !card.active; });
+  deck.forEach((card: any) => { isAllMatched = isAllMatched && card.isMatched; });
   return isAllMatched;
 }
-
 
 // sourece: https://stackoverflow.com/a/6274381
 function shuffle(a: Array<any>) {
@@ -153,10 +58,9 @@ function shuffle(a: Array<any>) {
   return a;
 }
 
-export function gameStart(game: any) {
+function createCardPositions() {
   let count = 0;
-  let cardPostions = [];
-  game.objects.deck = [];
+  const cardPostions = [];
 
   for (let y = 1; y <= CARD_ROWS; y++) {
     for (let x = 1; x <= CARD_COLUMNS; x++) {
@@ -169,31 +73,42 @@ export function gameStart(game: any) {
     }
   }
 
-  cardPostions = shuffle(cardPostions);
+  return shuffle(cardPostions);
+}
+
+export function gameStart(game: any) {
+  const cardPostions = createCardPositions();
+  game.objects.deck = [];
 
   for (let i = 0; i < 12; i++) {
     const cardNumber = i + 1;
-    const card1 = createCard(game, cardPostions[i], `card${cardNumber}`, i);
-    const card2 = createCard(game, cardPostions[i + 12], `card${cardNumber}`, i + 12);
-
-    game.objects.deck.push(card1);
-    game.objects.deck.push(card2);
+    game.objects.deck.push(
+      new Card(game, cardPostions[i], `card${cardNumber}`, i)
+    );
+    game.objects.deck.push(
+      new Card(game, cardPostions[i + 12], `card${cardNumber}`, i + 12)
+    );
   }
 
-  addTimer(game);
+  game.objects.timer = new gameTimer(game);
   game.state.isGameRunning = true;
 }
 
 export function gameEnd(game: any) {
   const { timer } = game.objects;
-  clearInterval(timer.getData("interval"));
-  const time = timer.getData("formatedTime");
+  timer.stop();
+  const time = timer.getTime();
 
   const completeText = game.add
     .text(GAME_BOARD_WIDTH / 2, 150, `Memory Game Completed in ${time}!!`, { ...TEXT_STYLE, fontSize: "24px" })
     .setOrigin(.5, .5);
 
-  const restartButton: any = addRestartButton(game);
+  const restartButton = game.add
+    .text(GAME_BOARD_WIDTH / 2, 350, 'Click to Play Again!', BUTTON_STYLE)
+    .setOrigin(.5, .5)
+    .setShadow(1, 1, '#4168fc')
+    .setInteractive({ cursor: 'pointer' });
+  
   restartButton.on('pointerdown', () => {
     completeText.destroy();
     restartButton.destroy();
