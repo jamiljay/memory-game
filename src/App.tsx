@@ -14,7 +14,7 @@ function App() {
         <Game />
       </main>
       <footer>
-        
+        <span className="float-right mr-2">Create by Jamil Shehadeh</span>
       </footer>
     </div>
   );
